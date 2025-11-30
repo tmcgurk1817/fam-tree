@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McGurk & Bellis Family Tree</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --border-color: #ccc;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --card-bg: #fff;
+            --text-primary: #333;
+            --text-secondary: #777;
+            --line-color: #ccc;
+            
+            /* Colors from your image */
+            --color-male: #3498db;   /* Blue */
+            --color-female: #e91e63; /* Pink */
+            --color-root: #9b59b6;   /* Purple */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* --- CARD STYLING (Matching the image) --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: var(--card-shadow);
+            padding: 15px;
+            display: inline-block;
+            text-align: center;
+            min-width: 180px;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Top Borders */
+        .card.male { border-top: 4px solid var(--color-male); }
+        .card.female { border-top: 4px solid var(--color-female); }
+        .card.union { border-top: 4px solid var(--color-root); }
+
+        /* Typography inside cards */
+        .card .name {
+            display: block;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .card .meta {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .card .location {
+            font-style: italic;
+            font-size: 10px;
+            color: #999;
+        }
+
+        /* Dashed divider for spouses */
+        .spouse-divider {
+            border-top: 1px dashed #ddd;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        /* --- LAYOUT: ANCESTRY SECTION (Top Half) --- */
+        .ancestry-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 100px; /* Space between the two main families */
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .lineage-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Vertical gap between ancestors */
+            position: relative;
+        }
+
+        /* Connecting lines for Ancestors */
+        .lineage-column::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background: var(--line-color);
+            z-index: 0;
+        }
+
+        .generation-label {
+            position: absolute;
+            left: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            color: #aaa;
+            text-transform: uppercase;
+            width: 60px;
+            text-align: right;
+        }
+
+        /* Connector for the two lines merging into Bernard & Grace */
+        .merge-connector {
+            position: absolute;
+            bottom: -40px; /* Reach down to the tree */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px; /* Width spanning the two columns */
+            height: 40px;
+            border-left: 1px solid var(--line-color);
+            border-right: 1px solid var(--line-color);
+            border-bottom: 1px solid var(--line-color);
+            border-radius: 0 0 10px 10px;
+            z-index: 0;
+        }
+        
+        /* Small vertical line dropping from merge connector to root card */
+        .merge-connector::after {
+            content: '';
+            position: absolute;
+            bottom: -20px; /* Drop down further to hit the card */
+            left: 50%;
+            height: 20px;
+            width: 1px;
+            background: var(--line-color);
+        }
+
+
+        /* --- LAYOUT: DESCENDANTS TREE (Bottom Half) --- */
+        .tree-container {
+            display: flex;
+            justify-content: center;
+            padding-top: 20px; /* Space for the connector to land */
+        }
+
+        .tree ul {
+            padding-top: 20px;
+            position: relative;
+            transition: all 0.5s;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tree li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 10px 0 10px;
+            transition: all 0.5s;
+        }
+
+        /* Tree Connectors */
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 1px solid var(--line-color);
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 1px solid var(--line-color);
+        }
+
+        .tree li:only-child::after, .tree li:only-child::before {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .tree li:last-child::before {
+            border-right: 1px solid var(--line-color);
+            border-radius: 0 5px 0 0;
+        }
+
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+        }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 1px solid var(--line-color);
+            width: 0;
+            height: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 800px) {
+            .ancestry-wrapper {
+                flex-direction: column;
+                gap: 50px;
+            }
+            .merge-connector {
+                display: none; /* Hide complex connector on mobile */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>The McGurk & Bellis Family Tree</h1>
+
+    <!-- SECTION 1: ANCESTRY (The Two Lines) -->
+    <div style="position: relative; width: fit-content; margin: 0 auto;">
+        
+        <div class="ancestry-wrapper">
+            
+            <!-- McGurk Line -->
+            <div class="lineage-column">
+                <div style="font-weight: bold; color: #3498db; margin-bottom: 10px;">McGurk Ancestry</div>
+                
+                <!-- Gen 1 -->
+                <div class="card male">
+                    <span class="name">Hugh McGuirk</span>
+                    <span class="meta">c. 1715 - 1741</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Elizabeth (Nelson)</span>
+                    <span class="meta">c. 1715</span>
+                </div>
+
+                <!-- Gen 2 -->
+                <div class="card male">
+                    <span class="name">John McGurk</span>
+                    <span class="meta">1743 - 1843</span>
+                    <span class="location">Dublin, Ireland</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Elizabeth (McDonald)</span>
+                    <span class="meta">1749 - 1843</span>
+                </div>
+
+                <!-- Gen 3 -->
+                <div class="card male">
+                    <span class="name">Alexander McGurk</span>
+                    <span class="meta">1791 - 1857</span>
+                    <span class="location">Cambuslang, Scotland</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Alice (Irwin)</span>
+                    <span class="meta">1796 - 1868</span>
+                </div>
+
+                <!-- Gen 4 -->
+                <div class="card male">
+                    <span class="name">Arthur P. McGurk</span>
+                    <span class="meta">1829 - 1913</span>
+                    <span class="location">Westville, IL</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Anna (Coyle)</span>
+                    <span class="meta">1838 - 1875</span>
+                </div>
+
+                <!-- Gen 5 -->
+                <div class="card male">
+                    <span class="name">Thomas McGurk</span>
+                    <span class="meta">1854 - 1947</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Beatrice (McGinty)</span>
+                    <span class="meta">1854 - 1947</span>
+                </div>
+
+                <!-- Gen 6 -->
+                <div class="card male">
+                    <span class="name">James J. McGurk</span>
+                    <span class="meta">1877 - 1960</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Annie (Dudek)</span>
+                    <span class="meta">1880 - 1964</span>
+                </div>
+
+                <!-- Gen 7 (Parents of Bernard) -->
+                <div class="card male">
+                    <span class="name">Thomas McGurk II</span>
+                    <span class="meta">1897 - 1987</span>
+                    <span class="location">Streator, IL</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Agnes (Scorby)</span>
+                    <span class="meta">1902 - 1965</span>
+                </div>
+            </div>
+
+            <!-- Bellis Line -->
+            <div class="lineage-column">
+                <div style="font-weight: bold; color: #e91e63; margin-bottom: 10px;">Bellis Ancestry</div>
+
+                <!-- Gen 1 -->
+                <div class="card female">
+                    <span class="name">Joannes Belis</span>
+                    <span class="meta">B. 1740</span>
+                    <span class="location">Rožňava, Slovakia</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Anna Mikula</span>
+                    <span class="meta">Unknown</span>
+                </div>
+
+                <!-- Gen 2 -->
+                <div class="card female">
+                    <span class="name">Joannis Belis</span>
+                    <span class="meta">B. 1756</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Dorothee</span>
+                    <span class="meta">Unknown</span>
+                </div>
+
+                <!-- Gen 3 -->
+                <div class="card female">
+                    <span class="name">Georgius Belis</span>
+                    <span class="meta">B. 1790</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Barbara Kutsera</span>
+                    <span class="meta">B. 1790</span>
+                </div>
+
+                <!-- Gen 4 -->
+                <div class="card female">
+                    <span class="name">Josephus Belis</span>
+                    <span class="meta">B. 1816</span>
+                    <span class="location">Paks, Hungary</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Maria Nameth</span>
+                    <span class="meta">B. 1829</span>
+                </div>
+
+                <!-- Gen 5 -->
+                <div class="card female">
+                    <span class="name">John Bellis</span>
+                    <span class="meta">B. 1861</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Anna Rakos</span>
+                    <span class="meta">B. 1862</span>
+                </div>
+
+                <!-- Gen 6 -->
+                <div class="card female">
+                    <div style="padding: 15px 0; color: #ccc; font-style: italic;">[Gap for spacing alignment]</div>
+                </div>
+
+                 <!-- Gen 7 (Parents of Grace) -->
+                 <div class="card female">
+                    <span class="name">Andrew Bellis</span>
+                    <span class="meta">1888 - 1980</span>
+                    <span class="location">Streator, IL</span>
+                    <div class="spouse-divider"></div>
+                    <span class="name">Mary (Martin)</span>
+                    <span class="meta">1898 - 1980</span>
+                </div>
+
+            </div>
+
+            <!-- The Visual Bridge Connector -->
+            <div class="merge-connector"></div>
+
+        </div>
+
+        <!-- SECTION 2: THE CONVERGENCE & DESCENDANTS -->
+        <div class="tree-container">
+            <div class="tree">
+                <ul>
+                    <!-- ROOT: Bernard & Grace -->
+                    <li>
+                        <div class="card union">
+                            <span class="name">Bernard McGurk</span>
+                            <span class="meta">1922 - 1994</span>
+                            <span class="location">Streator, IL</span>
+                            <div class="spouse-divider"></div>
+                            <span class="name">Grace (Bellis) McGurk</span>
+                            <span class="meta">1924 - 2017</span>
+                        </div>
+
+                        <!-- CHILDREN GENERATION -->
+                        <ul>
+                            <!-- Patrick -->
+                            <li>
+                                <div class="card male">
+                                    <span class="name">Patrick McGurk</span>
+                                    <span class="meta">B. 1951</span>
+                                    <span class="location">Streator, IL</span>
+                                    <div class="spouse-divider"></div>
+                                    <span class="name">Linda (Andre)</span>
+                                    <span class="meta">B. 1956</span>
+                                </div>
+                                <!-- Grandchildren -->
+                                <ul>
+                                    <li>
+                                        <div class="card female">
+                                            <span class="name">Shelia (McGurk) Rogers</span>
+                                            <span class="meta">B. 1975</span>
+                                            <div class="spouse-divider"></div>
+                                            <span class="name">Cory Rogers</span>
+                                            <span class="meta">B. 1975</span>
+                                        </div>
+                                        <!-- Great Grandchildren -->
+                                        <ul>
+                                            <li>
+                                                <div class="card female">
+                                                    <span class="name">Ashlyn Rogers</span>
+                                                    <span class="meta">Dates Unknown</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="card female">
+                                                    <span class="name">Cali Rogers</span>
+                                                    <span class="meta">Dates Unknown</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Michael -->
+                            <li>
+                                <div class="card male">
+                                    <span class="name">Michael A. McGurk</span>
+                                    <span class="meta">B. 1956</span>
+                                    <div class="spouse-divider"></div>
+                                    <span class="name">Cary (Isermann)</span>
+                                    <span class="meta">1956 - 2013</span>
+                                </div>
+                                <ul>
+                                    <li>
+                                        <div class="card male">
+                                            <span class="name">Nick J. McGurk</span>
+                                            <span class="meta">B. 1973</span>
+                                            <div class="spouse-divider"></div>
+                                            <span class="name">Kathleen (Condon)</span>
+                                            <span class="meta">B. 1972</span>
+                                        </div>
+                                        <ul>
+                                            <li>
+                                                <div class="card female">
+                                                    <span class="name">Margret McGurk</span>
+                                                    <span class="meta">B. 1999</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="card male">
+                                                    <span class="name">James B. McGurk</span>
+                                                    <span class="meta">B. 2001</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="card male">
+                                                    <span class="name">Sean M. McGurk</span>
+                                                    <span class="meta">B. 2003</span>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="card female">
+                                                    <span class="name">Briget A. McGurk</span>
+                                                    <span class="meta">B. 2006</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Thomas -->
+                            <li>
+                                <div class="card male">
+                                    <span class="name">Thomas J. McGurk III</span>
+                                    <span class="meta">B. 1964</span>
+                                    <div class="spouse-divider"></div>
+                                    <span class="name">Christian Beaudry</span>
+                                    <span class="meta">B. 1952</span>
+                                    <span class="location">Joliette, QC</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
